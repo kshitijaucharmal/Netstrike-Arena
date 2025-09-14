@@ -18,7 +18,6 @@ public:
         return instance;
     }
 
-
     std::unordered_map<std::string, PlayerSettings> players;
 
 private:

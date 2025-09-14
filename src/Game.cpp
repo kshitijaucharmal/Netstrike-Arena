@@ -13,9 +13,10 @@ Game::Game(LevelGenerator &lvlGen, World &world, Player &player) : lvlGen(lvlGen
     lvlGen.GenerateFromImage(ASSET_DIR "/levels/map1.png", &world);
     // Wiil be handled by server later
     lvlGen.SetPlayerPosition(player);
+
 }
 
-int Game::Loop(NetworkClient& networkClient, CameraManager &camera_manager) {
+int Game::Loop(NetworkClient *networkClient, CameraManager &camera_manager) {
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -28,7 +29,8 @@ int Game::Loop(NetworkClient& networkClient, CameraManager &camera_manager) {
         player.Update(dt);
 
         player.CheckCollisions(world);
-        networkClient.SendPacket(player.username + "|X: " + std::to_string(player.position.x) + " Y: " + std::to_string(player.position.y));
+        if (networkClient)
+            networkClient->SendPacket(player.username + "|X: " + std::to_string(player.position.x) + " Y: " + std::to_string(player.position.y));
 
         camera_manager.Update(player.position);
         //----------------------------------------------------------------------------------
@@ -39,7 +41,8 @@ int Game::Loop(NetworkClient& networkClient, CameraManager &camera_manager) {
         ClearBackground(RAYWHITE);
         BeginMode2D(camera_manager.camera);
         world.Draw();
-        player.Draw();
+        Vector2 mousePosition = GetScreenToWorld2D(GetMousePosition(), camera_manager.camera);
+        player.Draw(&mousePosition);
         camera_manager.DebugLines();
 
         EndMode2D();

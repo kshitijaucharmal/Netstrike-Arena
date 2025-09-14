@@ -9,6 +9,8 @@
 #include "World.hpp"
 #include <algorithm>
 
+#include "Constants.hpp"
+
 Player::Player(Vector2 pos) {
     pos -= size/2;
     position = pos;
@@ -20,12 +22,15 @@ Player::Player(Vector2 pos) {
     acceleration = Vector2{0, 9.8f * 5};
 
     collisionShape = Rectangle(pos.x, pos.y, size.x, size.y);
+
+    texture = LoadTexture(ASSET_DIR "/player/head.png");
+    sourceRect = Rectangle{0, 0, static_cast<float>(texture.width), static_cast<float>(texture.height)};
 }
 
 void Player::GetInputs() {
-    horizontal.x = IsKeyDown(KEY_LEFT) ? -1 : IsKeyDown(KEY_RIGHT) ? 1 : 0;
+    horizontal.x = IsKeyDown(KEY_A) ? -1 : IsKeyDown(KEY_D) ? 1 : 0;
 
-    if (IsKeyReleased(KEY_Z) && velocity.y < 0) {
+    if (IsKeyReleased(KEY_SPACE) && velocity.y < 0) {
         velocity.y = velocity.y * jumpStopFactor;
     }
 }
@@ -100,7 +105,7 @@ void Player::Update(float dt) {
     if (isGrounded) hangTimeCtr = hangTime;
     else hangTimeCtr -= dt;
 
-    if (IsKeyPressed(KEY_Z)) jumpBufferCounter = jumpBufferTime;
+    if (IsKeyPressed(KEY_SPACE)) jumpBufferCounter = jumpBufferTime;
     else jumpBufferCounter -= dt;
 
     if (jumpBufferCounter >= 0 && hangTimeCtr > 0) {
@@ -113,21 +118,56 @@ void Player::Update(float dt) {
         _canJump = false;
         isGrounded = false;
     }
+
 }
 
 void Player::Draw() {
-    DrawText(username.data(), position.x - 9, position.y - 20, 18, BLACK);
+    // Draw text above head ----------------------
+    const int textWidth = MeasureText(username.data(), 18);
+    const int posX = position.x + (size.x/2) - (textWidth / 2);
+
+    DrawText(username.data(), posX, position.y - 30, 18, BLACK);
+    // -------------------------------------------
+    headPosition.x = position.x + (size.x/2);
+    headPosition.y = position.y + (size.y/4);
+
 
     DrawRectangleRounded(
-        Rectangle{ position.x, position.y,size.x, size.y},
+        Rectangle{ position.x, position.y + size.y/2,size.x, size.y/2},
         0.2,
         10,
         BLACK);
     DrawRectangleRounded(
-        Rectangle{ position.x + 2, position.y + 2,size.x - 4, size.y - 4},
+        Rectangle{ position.x + 2, position.y + size.y/2 + 2,size.x - 4, size.y/2 - 4},
         0.2,
         10,
         RED);
+
+    // Draw ShootPoint
+    DrawCircle(shootPoint.x, shootPoint.y, 4, GREEN);
+    // Draw Head
+    float scaling = 1.7;
+    Vector2 newSize = Vector2(size.x * scaling, size.x * scaling);
+    auto destRect = Rectangle{headPosition.x, headPosition.y , newSize.x, newSize.y};
+    DrawTexturePro(texture, sourceRect, destRect, newSize/2, angle * RAD2DEG - 90, WHITE);
+}
+
+void Player::Draw(Vector2* mousePosition) {
+    headPosition.x = position.x + (size.x/2);
+    headPosition.y = position.y + (size.y/4);
+
+    const float dx = mousePosition->x - headPosition.x;
+    const float dy = mousePosition->y - headPosition.y;
+
+    angle = atan2f(dy, dx);
+
+    const float dxx = (20) * cosf(angle);
+    const float dyy = (20) * sinf(angle);
+
+    shootPoint.x = headPosition.x + dxx;
+    shootPoint.y = headPosition.y + dyy;
+
+    Draw();
 }
 
 Player::~Player() {

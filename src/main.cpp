@@ -32,6 +32,7 @@ int main() {
     // Initialization
     //--------------------------------------------------------------------------------------
 
+    // SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(Constants::WIDTH, Constants::HEIGHT, "Platformer");
     SetTargetFPS(75);               // Set our game to run at 60 frames-per-second
 
@@ -66,7 +67,7 @@ int main() {
     }
 
     Game mainGame(lvlGen, world, player);
-    mainGame.Loop(networkClient, camera_manager);
+    mainGame.Loop(nullptr, camera_manager);
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
