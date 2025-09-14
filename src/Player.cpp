@@ -9,6 +9,7 @@
 #include "World.hpp"
 #include <algorithm>
 
+#include "AssetLoader.hpp"
 #include "Constants.hpp"
 
 Player::Player(Vector2 pos) {
@@ -23,7 +24,7 @@ Player::Player(Vector2 pos) {
 
     collisionShape = Rectangle(pos.x, pos.y, size.x, size.y);
 
-    texture = LoadTexture(ASSET_DIR "/player/head.png");
+    texture = AssetLoader::Get().textures["Player_Head"];
     sourceRect = Rectangle{0, 0, static_cast<float>(texture.width), static_cast<float>(texture.height)};
 }
 
@@ -171,5 +172,5 @@ void Player::Draw(Vector2* mousePosition) {
 }
 
 Player::~Player() {
-    UnloadTexture(texture);
+    // UnloadTexture(texture);
 }
