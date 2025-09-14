@@ -18,5 +18,5 @@ class Game {
     World& world;
     Player& player;
 
-    int Loop(NetworkClient& networkClient, CameraManager &camera_manager);
+    int Loop(NetworkClient *networkClient, CameraManager &camera_manager);
 };

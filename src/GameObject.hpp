@@ -16,8 +16,8 @@ public:
     Rectangle collisionShape;
 
     virtual void Update(float dt);
-    virtual void Draw();
 
+    virtual void Draw();
 };
 
 #endif //GAMEOBJECT_HPP

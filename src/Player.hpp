@@ -14,10 +14,14 @@
 class Player : public GameObject{
 public:
     // Display
-    Vector2 size = Vector2(40, 40);
+    Vector2 size = Vector2(30, 60);
+    Vector2 headPosition = Vector2(0, 0);
+    Vector2 shootPoint = Vector2(0, 0);
+    float angle = 90 * DEG2RAD;
+    Rectangle sourceRect = Rectangle(0, 0, 32, 32);
 
     bool isGrounded = false;
-    std::string username;
+    std::string username = "Test Player";
 
     // Visual
     Texture2D texture;
@@ -43,6 +47,7 @@ public:
 
     void GetInputs();
     void Update(float dt) override;
+    void Draw(Vector2* mousePosition);
     void Draw() override;
 
     void Jump(float dt);

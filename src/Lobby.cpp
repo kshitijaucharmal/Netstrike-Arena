@@ -66,7 +66,8 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         ClearBackground(RAYWHITE);
         BeginMode2D(camera_manager.camera);
         world.Draw();
-        player.Draw();
+        Vector2 mousePosition = GetScreenToWorld2D(GetMousePosition(), camera_manager.camera);
+        player.Draw(&mousePosition);
 
         for (const auto& [name, settings] : Global::Get().players) {
             if (name == player.username) continue;
