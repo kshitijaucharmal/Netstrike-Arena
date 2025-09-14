@@ -14,6 +14,7 @@
 #include "Lobby.hpp"
 #include "NetworkClient.hpp"
 #include "rlImGui.h"
+#include "AssetLoader.hpp"
 
 // NOTE: Gamepad name ID depends on drivers and OS
 #define XBOX_ALIAS_1 "xbox"
@@ -24,6 +25,7 @@ int gamepad = 2; // which gamepad to display
 // Networking
 #define PORT 8080
 Global Global::instance;
+AssetLoader AssetLoader::instance;
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -50,6 +52,7 @@ int main() {
     rlImGuiSetup(false);
     //--------------------------------------------------------------------------------------
 
+    AssetLoader::Get().LoadAssets();
     // GameObjects init
     LevelGenerator lvlGen;
     World world;
@@ -69,9 +72,11 @@ int main() {
     Game mainGame(lvlGen, world, player);
     mainGame.Loop(nullptr, camera_manager);
 
+
     // De-Initialization
     //--------------------------------------------------------------------------------------
     networkClient.Disconnect();
+    AssetLoader::Get().UnloadAssets();
 
     //--------------------------------------------------------------------------------------
 
