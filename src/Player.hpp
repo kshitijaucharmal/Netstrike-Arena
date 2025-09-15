@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "World.hpp"
+#include "../../../../../../home/kshitij/projects/cpp/Platformer_RL/src/Bullet.hpp"
 
 #ifndef PLATFORMER_RL_PLAYER_HPP
 #define PLATFORMER_RL_PLAYER_HPP
@@ -24,10 +25,10 @@ public:
     std::string username = "Test Player";
 
     // Visual
-    Texture2D texture;
+    Texture2D texture{};
 
     // Movement
-    Vector2 horizontal;
+    Vector2 horizontal{};
     float speed = 450;
     float jumpHeight = 18;
     float jumpStopFactor = 0.3f;
@@ -41,6 +42,10 @@ public:
     float jumpBufferTime = 0.1f;
     float jumpBufferCounter;
 
+    // Shooting
+    const int maxBullets = 100;
+    std::vector<Bullet> bullets;
+
     Player(Vector2 pos);
     Player() : Player(Vector2(0, 0)) {}
     ~Player();
@@ -49,6 +54,7 @@ public:
     void Update(float dt) override;
     void Draw(Vector2* mousePosition);
     void Draw() override;
+    void Shoot();
 
     void Jump(float dt);
 

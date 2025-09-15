@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "AssetLoader.hpp"
+#include "Bullet.hpp"
 #include "Constants.hpp"
 
 Player::Player(Vector2 pos) {
@@ -22,6 +23,9 @@ Player::Player(Vector2 pos) {
     velocity = Vector2{0, 0};
     acceleration = Vector2{0, 9.8f * 5};
 
+    // Bullets
+    bullets = std::vector<Bullet>(maxBullets);
+
     collisionShape = Rectangle(pos.x, pos.y, size.x, size.y);
 
     texture = AssetLoader::Get().textures["Player_Head"];
@@ -33,6 +37,21 @@ void Player::GetInputs() {
 
     if (IsKeyReleased(KEY_SPACE) && velocity.y < 0) {
         velocity.y = velocity.y * jumpStopFactor;
+    }
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Shoot();
+    }
+}
+
+void Player::Shoot() {
+    for (auto &b : bullets) {
+        if (!b.active) {
+            b.SetActive();
+            b.position = shootPoint;
+            b.SetAngle(angle);
+            return;
+        }
     }
 }
 
@@ -120,6 +139,11 @@ void Player::Update(float dt) {
         isGrounded = false;
     }
 
+    // Bullets
+    for (auto &b : bullets) {
+        b.Update(dt);
+    }
+
 }
 
 void Player::Draw() {
@@ -148,9 +172,13 @@ void Player::Draw() {
     DrawCircle(shootPoint.x, shootPoint.y, 4, GREEN);
     // Draw Head
     float scaling = 1.7;
-    Vector2 newSize = Vector2(size.x * scaling, size.x * scaling);
+    auto newSize = Vector2(size.x * scaling, size.x * scaling);
     auto destRect = Rectangle{headPosition.x, headPosition.y , newSize.x, newSize.y};
     DrawTexturePro(texture, sourceRect, destRect, newSize/2, angle * RAD2DEG - 90, WHITE);
+
+    for (auto &b : bullets) {
+        b.Draw();
+    }
 }
 
 void Player::Draw(Vector2* mousePosition) {

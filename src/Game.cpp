@@ -4,6 +4,7 @@
 
 #include "Game.hpp"
 
+#include "Global.hpp"
 #include "imgui.h"
 #include "rlImGui.h"
 
@@ -14,6 +15,19 @@ Game::Game(LevelGenerator &lvlGen, World &world, Player &player) : lvlGen(lvlGen
     // Wiil be handled by server later
     lvlGen.SetPlayerPosition(player);
 
+}
+
+void Game::UpdateOtherPlayers() {
+    for (const auto& [name, settings] : Global::Get().players) {
+        if (name == player.username) continue;
+
+        if (!otherPlayers.contains(name)) {
+            otherPlayers.emplace(name, Player(settings.position));
+            otherPlayers[name].username = name;
+        }
+
+        otherPlayers[name].position = Vector2Lerp(otherPlayers[name].position, settings.position, 0.6f);
+    }
 }
 
 int Game::Loop(NetworkClient *networkClient, CameraManager &camera_manager) {
@@ -30,9 +44,10 @@ int Game::Loop(NetworkClient *networkClient, CameraManager &camera_manager) {
 
         player.CheckCollisions(world);
         if (networkClient)
-            networkClient->SendPacket(player.username + "|X: " + std::to_string(player.position.x) + " Y: " + std::to_string(player.position.y));
+            networkClient->SendPacket("3|" + player.username + "|[" + std::to_string(player.position.x) + "," + std::to_string(player.position.y) + "]:");
 
         camera_manager.Update(player.position);
+        UpdateOtherPlayers();
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -43,7 +58,11 @@ int Game::Loop(NetworkClient *networkClient, CameraManager &camera_manager) {
         world.Draw();
         Vector2 mousePosition = GetScreenToWorld2D(GetMousePosition(), camera_manager.camera);
         player.Draw(&mousePosition);
-        camera_manager.DebugLines();
+
+        for (const auto& [name, settings] : Global::Get().players) {
+            if (name == player.username) continue;
+            if (otherPlayers.contains(name)) otherPlayers[name].Draw();
+        }
 
         EndMode2D();
 
