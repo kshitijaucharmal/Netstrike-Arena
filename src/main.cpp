@@ -52,6 +52,7 @@ int main() {
     rlImGuiSetup(false);
     //--------------------------------------------------------------------------------------
 
+    // Load assets
     AssetLoader::Get().LoadAssets();
     // GameObjects init
     LevelGenerator lvlGen;
@@ -63,14 +64,14 @@ int main() {
     NetworkClient networkClient;
     ENetPeer* peer = networkClient.ConnectToServerUI(&player);
 
-    Lobby lobby(lvlGen, world, player);
-
-    while (!lobby.IsEveryoneReady()) {
-        lobby.Loop(networkClient, camera_manager);
-    }
+    // Lobby lobby(lvlGen, world, player);
+    //
+    // while (!lobby.IsEveryoneReady()) {
+    //     lobby.Loop(networkClient, camera_manager);
+    // }
 
     Game mainGame(lvlGen, world, player);
-    mainGame.Loop(nullptr, camera_manager);
+    mainGame.Loop(&networkClient, camera_manager);
 
 
     // De-Initialization

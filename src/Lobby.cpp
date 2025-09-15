@@ -31,7 +31,7 @@ void Lobby::UpdateOtherPlayers() {
         if (name == player.username) continue;
 
         if (!otherPlayers.contains(name)) {
-            otherPlayers[name] = Player(settings.position);
+            otherPlayers.emplace(name, Player(settings.position));
             otherPlayers[name].username = name;
         }
 
