@@ -14,7 +14,6 @@ Game::Game(LevelGenerator &lvlGen, World &world, Player &player) : lvlGen(lvlGen
     lvlGen.GenerateFromImage(ASSET_DIR "/levels/map1.png", &world);
     // Wiil be handled by server later
     lvlGen.SetPlayerPosition(player);
-
 }
 
 void Game::UpdateOtherPlayers() {

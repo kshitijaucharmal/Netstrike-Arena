@@ -116,29 +116,36 @@ void ParseData(ENetEvent& event, ENetHost* server, int id, const char* data) {
     }
 }
 
-std::mutex playersMutex;
+bool EveryoneReady() {
+    if (players.size() < 2) return false;
+    for (auto& p : players) {
+        if (!p.second.ready) return false;
+    }
+    return true;
+}
 
 void BroadcastPositions() {
     while (true) {
         std::string send_data;
 
-        {   // Scope lock
-            std::lock_guard<std::mutex> lock(playersMutex);
-
-            send_data = "3|" + std::to_string(players.size()) + "|";
-            for (auto& [username, settings] : players) {
-                send_data += "[" + username + ":" +
-                             std::to_string(settings.position.x) + "," +
-                             std::to_string(settings.position.y) + "]|";
-            }
-            send_data.pop_back(); // remove last '|'
-        }
-
-        {   // Send to clients (also lock if `players` may change peer references)
-            std::lock_guard<std::mutex> lock(playersMutex);
+        if (EveryoneReady()) {
+            send_data = "AllReady";
             for (auto& [username, settings] : players) {
                 SendPacket(settings.peer, send_data);
             }
+            continue;
+        }
+
+        send_data = "3|" + std::to_string(players.size()) + "|";
+        for (auto& [username, settings] : players) {
+            send_data += "[" + username + ":" +
+                         std::to_string(settings.position.x) + "," +
+                         std::to_string(settings.position.y) + "]|";
+        }
+        send_data.pop_back(); // remove last '|'
+
+        for (auto& [username, settings] : players) {
+            SendPacket(settings.peer, send_data);
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BETWEEN_BROADCAST));

@@ -12,6 +12,11 @@
 #ifndef PLATFORMER_RL_PLAYER_HPP
 #define PLATFORMER_RL_PLAYER_HPP
 
+#include <iostream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
 class Player : public GameObject{
 public:
     // Display
@@ -61,5 +66,30 @@ public:
     void CheckCollisions(const World &world);
 };
 
+// Defining how to convert from json to Player (and vv)
+namespace nlohmann {
+    template<>
+    struct nlohmann::adl_serializer<Player> {
+        static void to_json(json &j, const Player &p) {
+            j = json{
+                {"name", p.username},
+                {"px", p.position.x},
+                {"py", p.position.y},
+                {"angle", p.angle}
+            };
+        }
+
+        static void from_json(const json &j, Player &p) {
+            try {
+                p.username = j.at("name").get<std::string>();
+                p.position.x = j.at("px").get<float>();
+                p.position.y = j.at("py").get<float>();
+                p.angle = j.at("angle").get<float>();
+            } catch (const std::exception &e) {
+                std::cout << "Invalid JSON Format: " << e.what() << std::endl;
+            }
+        }
+    };
+}
 
 #endif //PLATFORMER_RL_PLAYER_HPP

@@ -61,22 +61,19 @@ int main() {
     Player player(Vector2(Constants::WIDTH/2, Constants::HEIGHT/5));
     CameraManager camera_manager(player.position, player.size);
 
-    NetworkClient networkClient;
-    ENetPeer* peer = networkClient.ConnectToServerUI(&player);
+    // NetworkClient networkClient;
+    // ENetPeer* peer = networkClient.ConnectToServerUI(&player);
 
     // Lobby lobby(lvlGen, world, player);
-    //
-    // while (!lobby.IsEveryoneReady()) {
-    //     lobby.Loop(networkClient, camera_manager);
-    // }
+    // lobby.Loop(networkClient, camera_manager);
 
     Game mainGame(lvlGen, world, player);
-    mainGame.Loop(&networkClient, camera_manager);
+    mainGame.Loop(nullptr, camera_manager);
 
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    networkClient.Disconnect();
+    // networkClient.Disconnect();
     AssetLoader::Get().UnloadAssets();
 
     //--------------------------------------------------------------------------------------
