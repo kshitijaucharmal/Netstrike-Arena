@@ -69,7 +69,7 @@ public:
 // Defining how to convert from json to Player (and vv)
 namespace nlohmann {
     template<>
-    struct nlohmann::adl_serializer<Player> {
+    struct adl_serializer<Player> {
         static void to_json(json &j, const Player &p) {
             j = json{
                 {"name", p.username},
