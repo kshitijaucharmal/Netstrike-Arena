@@ -17,9 +17,9 @@ NetworkClient::NetworkClient() {
 }
 
 void parseData(const std::string& data) {
-    // Find the position after the second '|'
     size_t firstSep = data.find('|');
     if (firstSep == std::string::npos) return;
+
     size_t secondSep = data.find('|', firstSep + 1);
     if (secondSep == std::string::npos) return;
 
@@ -65,8 +65,13 @@ void* MsgLoop(void* client){
             switch (event.type)
             {
                 case ENET_EVENT_TYPE_RECEIVE:
-
                     std::string pdata = reinterpret_cast<char *>(event.packet->data);
+
+                    if (pdata == "AllReady") {
+                        Global::Get().allReady = true;
+                        continue;
+                    }
+
                     parseData(pdata);
 
                     enet_packet_destroy(event.packet);

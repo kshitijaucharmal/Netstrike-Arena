@@ -19,6 +19,7 @@ public:
     }
 
     std::unordered_map<std::string, PlayerSettings> players;
+    bool allReady = false;
 
 private:
     Global() {}

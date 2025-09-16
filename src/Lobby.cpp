@@ -45,6 +45,8 @@ bool ready;
 void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        if (Global::Get().allReady) break;
+
         float dt = GetFrameTime();
         // Update
         //----------------------------------------------------------------------------------
@@ -107,6 +109,6 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
-    networkClient.SendPacket("4|" + player.username);
-    CloseWindow();        // Close window and OpenGL context
+    // networkClient.SendPacket("4|" + player.username);
+    // CloseWindow();        // Close window and OpenGL context
 }
