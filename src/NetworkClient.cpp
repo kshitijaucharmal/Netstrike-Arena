@@ -82,7 +82,7 @@ void* MsgLoop(void* client){
 }
 
 void NetworkClient::SendPacket(std::string data){
-    ENetPacket* packet = enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE);
+    ENetPacket* packet = enet_packet_create(data.c_str(), data.size() + 1, ENET_PACKET_FLAG_RELIABLE);
     // Channel 0
     enet_peer_send(peer, 0, packet);
 }
@@ -187,7 +187,7 @@ ENetPeer* NetworkClient::ConnectToServerUI(Player *player) {
 
             const int error_code = ConnectToServer(host, port);
             // Send Player username to register
-            SendPacket("1|" + player->username);
+            SendPacket(json{"REGISTER", player->username}.dump(4));
 
             if (!error_code) ConnectWindow = false;
             else {

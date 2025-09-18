@@ -56,7 +56,7 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         player.Update(dt);
 
         player.CheckCollisions(world);
-        networkClient.SendPacket("3|" + player.username + "|[" + std::to_string(player.position.x) + "," + std::to_string(player.position.y) + "]:");
+        networkClient.SendPacket(json{"INFO", player}.dump());
 
         camera_manager.Update(player.position);
         UpdateOtherPlayers();
@@ -93,12 +93,12 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         if (!isReady && ready) {
             isReady = true;
             std::cout << "Player " << player.username << "is ready." << std::endl;
-            networkClient.SendPacket("2|" + player.username + "|1");
+            networkClient.SendPacket(json{"READY", player.username, true}.dump());
         }
         if (isReady && !ready) {
             isReady = false;
             std::cout << "Player " << player.username << "is not ready." << std::endl;
-            networkClient.SendPacket("2|" + player.username + "|0");
+            networkClient.SendPacket(json{"READY", player.username, false}.dump());
         }
 
         ImGui::End();
@@ -109,6 +109,6 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
-    // networkClient.SendPacket("4|" + player.username);
-    // CloseWindow();        // Close window and OpenGL context
+    networkClient.SendPacket(json{"DISCONNECT", player.username}.dump());
+    CloseWindow();        // Close window and OpenGL context
 }
