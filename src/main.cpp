@@ -61,15 +61,14 @@ int main() {
     Player player(Vector2(Constants::WIDTH/2, Constants::HEIGHT/5));
     CameraManager camera_manager(player.position, player.size);
 
-    // NetworkClient networkClient;
-    // ENetPeer* peer = networkClient.ConnectToServerUI(&player);
+    NetworkClient networkClient;
+    ENetPeer* peer = networkClient.ConnectToServerUI(&player);
 
-    // Lobby lobby(lvlGen, world, player);
-    // lobby.Loop(networkClient, camera_manager);
+    Lobby lobby(lvlGen, world, player);
+    lobby.Loop(networkClient, camera_manager);
 
     Game mainGame(lvlGen, world, player);
     mainGame.Loop(nullptr, camera_manager);
-
 
     // De-Initialization
     //--------------------------------------------------------------------------------------

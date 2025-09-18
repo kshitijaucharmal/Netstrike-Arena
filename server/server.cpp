@@ -9,6 +9,8 @@
 #include <chrono>
 #include <thread>
 
+#include "../src/Player.hpp"
+
 #define PORT 1234
 #define TIME_BETWEEN_BROADCAST 5
 
@@ -60,60 +62,57 @@ void SendPacket(ENetPeer* peer, std::string msg){
 }
 
 void ParseData(ENetEvent& event, ENetHost* server, int id, const char* data) {
-    std::stringstream ss(data);
-    std::string token;
 
-    // Get data_type (first field)
-    if (!std::getline(ss, token, '|')) return;
-    int data_type = std::stoi(token);
+    json j;
+    try {
+        j = json::parse(data);
+    } catch (const std::exception& e) {
+        std::cout << e.what() << "Invalid format" << std::endl;
+        return;
+    }
+    std::cout << j[0] << std::endl;
 
-    std::string username;
-    std::string extra;
+    auto command = j[0].get<std::string>();
 
-    switch (data_type) {
-        case 1: {
-            // 1|username
-            if (std::getline(ss, username)) {
-                if (players.find(username) != players.end()) {
-                    std::cout <<  "Username: " << username << " is already present in the game" << std::endl;
-                }
-                else {
-                    std::cout << username << " Registered." << std::endl;
-                    players[username] = PlayerSettings{event.peer};
-                }
-            }
-            break;
+    if (command == "REGISTER"){
+        auto username = j[1].get<std::string>();
+        if (players.contains(username)) {
+            std::cout <<  "Username: " << username << " is already present in the game" << std::endl;
         }
-        case 2: {
-            // 2|username|ready
-            if (std::getline(ss, username, '|') && std::getline(ss, extra)) {
-                players[username].ready = std::stoi(extra);
-                std::cout << username << " ready:" << players[username].ready << std::endl;
-            }
-            break;
-        }
-        case 3: {
-            // 3|username|player_dat
-            if (std::getline(ss, username, '|') && std::getline(ss, extra)) {
-                std::string player_data = extra;
-                if (players.find(username) == players.end()) {
-                    std::cout << username << ": player not in game\n" << std::endl;
-                    break;
-                }
-
-                ParsePlayerInfo(username, player_data);
-            }
-            break;
-        }
-        case 4: {
-            // 4|username
-            if (std::getline(ss, username)) {
-                std::cout << username << " Disconnected." << std::endl;
-                players.erase(username);
-            }
-            break;
+        else {
+            std::cout << username << " Registered." << std::endl;
+            players[username] = PlayerSettings{event.peer};
         }
     }
+    else if (command == "READY") {
+        // 2|username|ready
+        auto username = j[1].get<std::string>();
+        auto ready = j[2].get<bool>();
+        players[username].ready = ready;
+        std::cout << username << " ready:" << players[username].ready << std::endl;
+    }
+    else if (command == "INFO"){
+        // 3|username|player_dat
+        // TODO: Make this work
+        auto username = j[1]["name"].get<std::string>();
+        std::cout << username << " is doing some shit" << std::endl;
+        // if (std::getline(ss, username, '|') && std::getline(ss, extra)) {
+        //     std::string player_data = extra;
+        //     if (players.find(username) == players.end()) {
+        //         std::cout << username << ": player not in game\n" << std::endl;
+        //     }
+        //
+        //     ParsePlayerInfo(username, player_data);
+        // }
+    }
+        // case 4: {
+        //     // 4|username
+        //     if (std::getline(ss, username)) {
+        //         std::cout << username << " Disconnected." << std::endl;
+        //         players.erase(username);
+        //     }
+        //     break;
+        // }
 }
 
 bool EveryoneReady() {
@@ -194,8 +193,6 @@ int main(int argc, char ** argv){
                 SendPacket(event.peer, "Received - ACK");
                 break;
             case ENET_EVENT_TYPE_RECEIVE:
-                // printf("%s\n", event.packet->data);
-
                 ParseData(event, server, -1, reinterpret_cast<char *>(event.packet->data));
                 enet_packet_destroy(event.packet);
 
