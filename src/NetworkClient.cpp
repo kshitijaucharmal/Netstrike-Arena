@@ -67,7 +67,7 @@ void* MsgLoop(void* client){
                 case ENET_EVENT_TYPE_RECEIVE:
                     std::string pdata = reinterpret_cast<char *>(event.packet->data);
 
-                    if (pdata == "AllReady") {
+                    if (pdata == "ALL_READY") {
                         Global::Get().allReady = true;
                         continue;
                     }

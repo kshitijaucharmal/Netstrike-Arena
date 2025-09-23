@@ -20,39 +20,18 @@ struct PlayerSettings {
 
     // data received
     Vector2 position = Vector2(0, 0);
+    float angle = 90 * DEG2RAD;
 };
 
 std::unordered_map<std::string, PlayerSettings> players;
 
-void ParsePlayerInfo(std::string& username, std::string& player_data) {
-    const size_t start = player_data.find('[');
-    const size_t end = player_data.find(']');
+void ParsePlayerInfo(json p, ENetPeer* peer) {
+    const auto username = p["name"].get<std::string>();
+    players[username].position.x = p["px"].get<float>();
+    players[username].position.y = p["py"].get<float>();
+    players[username].angle = p["angle"].get<float>();
 
-    if (start == std::string::npos || end == std::string::npos || start > end) {
-        std::cout << "Not correct position format" << std::endl;
-        return;
-    }
-
-    std::string numbers = player_data.substr(start + 1, end - start - 1);
-
-    // Split by comma
-    std::stringstream ss(numbers);
-    std::string token;
-    std::vector<float> values;
-
-    while (std::getline(ss, token, ',')) {
-        values.push_back(std::stof(token));
-    }
-
-    if (values.size() != 2) {
-        std::cout << "Expected exactly two numbers" << std::endl;
-        return;
-    }
-
-    players[username].position.x = values[0];
-    players[username].position.y = values[1];
-
-    // std::cout << username << player_data << std::endl;
+    players[username].peer = peer;
 }
 
 void SendPacket(ENetPeer* peer, std::string msg){
@@ -62,7 +41,6 @@ void SendPacket(ENetPeer* peer, std::string msg){
 }
 
 void ParseData(ENetEvent& event, ENetHost* server, int id, const char* data) {
-
     json j;
     try {
         j = json::parse(data);
@@ -70,9 +48,8 @@ void ParseData(ENetEvent& event, ENetHost* server, int id, const char* data) {
         std::cout << e.what() << "Invalid format" << std::endl;
         return;
     }
-    std::cout << j[0] << std::endl;
 
-    auto command = j[0].get<std::string>();
+    const auto command = j[0].get<std::string>();
 
     if (command == "REGISTER"){
         auto username = j[1].get<std::string>();
@@ -86,8 +63,8 @@ void ParseData(ENetEvent& event, ENetHost* server, int id, const char* data) {
     }
     else if (command == "READY") {
         // 2|username|ready
-        auto username = j[1].get<std::string>();
-        auto ready = j[2].get<bool>();
+        const auto username = j[1].get<std::string>();
+        const auto ready = j[2].get<bool>();
         players[username].ready = ready;
         std::cout << username << " ready:" << players[username].ready << std::endl;
     }
@@ -95,24 +72,13 @@ void ParseData(ENetEvent& event, ENetHost* server, int id, const char* data) {
         // 3|username|player_dat
         // TODO: Make this work
         auto username = j[1]["name"].get<std::string>();
-        std::cout << username << " is doing some shit" << std::endl;
-        // if (std::getline(ss, username, '|') && std::getline(ss, extra)) {
-        //     std::string player_data = extra;
-        //     if (players.find(username) == players.end()) {
-        //         std::cout << username << ": player not in game\n" << std::endl;
-        //     }
-        //
-        //     ParsePlayerInfo(username, player_data);
-        // }
+        ParsePlayerInfo(j[1], event.peer);
     }
-        // case 4: {
-        //     // 4|username
-        //     if (std::getline(ss, username)) {
-        //         std::cout << username << " Disconnected." << std::endl;
-        //         players.erase(username);
-        //     }
-        //     break;
-        // }
+    else if (command == "DISCONNECT") {
+        const auto username = j[1].get<std::string>();
+        players.erase(username);
+        std::cout << username << " Disconnected." << std::endl;
+    }
 }
 
 bool EveryoneReady() {
@@ -127,9 +93,10 @@ void BroadcastPositions() {
     while (true) {
         std::string send_data;
 
+        // All ready
         if (EveryoneReady()) {
-            send_data = "AllReady";
-            for (auto& [username, settings] : players) {
+            send_data = "ALL_READY";
+            for (const auto &settings: players | std::views::values) {
                 SendPacket(settings.peer, send_data);
             }
             continue;
