@@ -1,0 +1,9 @@
+[submodule "external/raylib"]
+	path = external/raylib
+	url = https://github.com/raysan5/raylib
+[submodule "external/enet"]
+	path = external/enet
+	url = https://github.com/lsalzman/enet
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui

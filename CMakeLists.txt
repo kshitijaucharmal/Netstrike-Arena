@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 3.48)
+cmake_minimum_required(VERSION 3.20)
 project(Platformer_RL)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(raylib REQUIRED)
+# find_package(raylib REQUIRED)
+# Raylib
+add_subdirectory(external/raylib)
 
 ## Build ImGui
 add_library(imgui STATIC
@@ -28,7 +30,7 @@ set(ASSET_PATH "${CMAKE_SOURCE_DIR}/assets")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 add_executable(server ${SERVER_FILES})
 
-target_link_libraries(server PRIVATE enet)
+target_link_libraries(server PRIVATE enet raylib)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib imgui enet)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ASSET_DIR="${ASSET_PATH}")
