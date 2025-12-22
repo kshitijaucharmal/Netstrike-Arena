@@ -7,7 +7,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "World.hpp"
-#include "../../../../../../home/kshitij/projects/cpp/Platformer_RL/src/Bullet.hpp"
+#include "Bullet.hpp"
 
 #ifndef PLATFORMER_RL_PLAYER_HPP
 #define PLATFORMER_RL_PLAYER_HPP

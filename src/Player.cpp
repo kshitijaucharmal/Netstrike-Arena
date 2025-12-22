@@ -10,7 +10,6 @@
 #include <algorithm>
 
 #include "AssetLoader.hpp"
-#include "Bullet.hpp"
 #include "Constants.hpp"
 
 Player::Player(Vector2 pos) {

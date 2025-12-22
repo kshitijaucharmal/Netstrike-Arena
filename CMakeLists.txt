@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Platformer_RL)
+project(NetStrike-Arena)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -20,6 +20,8 @@ add_subdirectory(external/enet)
 
 target_include_directories(imgui PUBLIC
         external/imgui
+        external/enet/include
+        external/json
 )
 
 file(GLOB_RECURSE SOURCE_FILES src/*)
@@ -34,3 +36,12 @@ target_link_libraries(server PRIVATE enet raylib)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib imgui enet)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ASSET_DIR="${ASSET_PATH}")
+
+# Fix enet include for server
+target_include_directories(server PRIVATE external/enet/include)
+
+# Fix nlohmann json include
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/nlohmann)
+# Copy json.hpp to build/include/nlohmann/json.hpp so <nlohmann/json.hpp> works
+configure_file(${CMAKE_SOURCE_DIR}/external/json/json.hpp ${CMAKE_BINARY_DIR}/include/nlohmann/json.hpp COPYONLY)
+include_directories(${CMAKE_BINARY_DIR}/include)
