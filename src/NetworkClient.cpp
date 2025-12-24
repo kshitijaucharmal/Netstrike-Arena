@@ -12,49 +12,40 @@
 #include <unordered_map>
 #include "Global.hpp"
 
+#include "../common/common_headers.hpp"
+
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
+
 NetworkClient::NetworkClient() {
 
 }
 
-void parseData(const std::string& data) {
-    size_t firstSep = data.find('|');
-    if (firstSep == std::string::npos) return;
+void parseData(const json& data) {
+    std::cout << data << std::endl;
 
-    size_t secondSep = data.find('|', firstSep + 1);
-    if (secondSep == std::string::npos) return;
-
-    size_t start = secondSep + 1;
-
-    while (start < data.size()) {
-        if (data[start] != '[') {
-            start++;
-            continue;
+    switch (data[0].get<CommandType>()) {
+        case ALL_READY: {
+            Global::Get().allReady = true;
+            break;
         }
-
-        size_t end = data.find(']', start);
-        if (end == std::string::npos) break;
-
-        std::string block = data.substr(start + 1, end - start - 1);
-        // block looks like: "name:x,y"
-
-        size_t colon = block.find(':');
-        size_t comma = block.find(',');
-
-        auto& players = Global::Get().players;
-        if (colon != std::string::npos && comma != std::string::npos) {
-            std::string name = block.substr(0, colon);
-            float x = std::stof(block.substr(colon + 1, comma - colon - 1));
-            float y = std::stof(block.substr(comma + 1));
-
-            if (players.contains(name)) {
-                players[name].position = Vector2(x, y);
-            }
-            else {
-                players[name] = PlayerSettings(Vector2(x, y));
-            }
+        case ACK: {
+            puts("Acknowledgement");
+            break;
         }
-
-        start = end + 1; // Move to next
+        case ALL_PLAYERS_INFO: {
+            puts("Player Info");
+            auto& players = Global::Get().players;
+            for (json player : data[1]["players"]) {
+                auto name = player["name"].get<std::string>();
+                const auto px = player["px"].get<float>();
+                const auto py = player["py"].get<float>();
+                players[name].position = Vector2(px, py);
+            }
+            break;
+        }
+        default:
+            break;
     }
 }
 
@@ -67,15 +58,18 @@ void* MsgLoop(void* client){
                 case ENET_EVENT_TYPE_RECEIVE:
                     std::string pdata = reinterpret_cast<char *>(event.packet->data);
 
-                    if (pdata == "ALL_READY") {
-                        Global::Get().allReady = true;
-                        continue;
-                    }
+                try
+                {
+                    json data = json::parse(pdata);
+                    parseData(json::parse(pdata));
+                }
+                catch (std::exception e)
+                {
+                    puts(e.what());
+                }
 
-                    parseData(pdata);
-
-                    enet_packet_destroy(event.packet);
-                    break;
+                enet_packet_destroy(event.packet);
+                break;
             }
         }
     }
@@ -115,8 +109,8 @@ int NetworkClient::ConnectToServer(const std::string host, const int port) {
         return EXIT_FAILURE;
     }
 
-    // Wait for 5 seconds
-    if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT){
+    // Wait for 3 seconds
+    if (enet_host_service(client, &event, 3000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT){
         puts("Connection to server succeeded");
     }
     else{
@@ -187,7 +181,7 @@ ENetPeer* NetworkClient::ConnectToServerUI(Player *player) {
 
             const int error_code = ConnectToServer(host, port);
             // Send Player username to register
-            SendPacket(json{"REGISTER", player->username}.dump(4));
+            SendPacket(json{REGISTER, player->username}.dump(4));
 
             if (!error_code) ConnectWindow = false;
             else {

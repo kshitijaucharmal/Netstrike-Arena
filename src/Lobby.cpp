@@ -12,6 +12,7 @@
 #include "Global.hpp"
 #include "NetworkClient.hpp"
 #include "rlImGui.h"
+#include "../common/common_headers.hpp"
 
 Lobby::Lobby(LevelGenerator& lvlGen, World& world, Player& player): world(world), player(player) {
     lvlGen.GenerateFromImage(ASSET_DIR "/levels/lobby.png", &world);
@@ -56,7 +57,7 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         player.Update(dt);
 
         player.CheckCollisions(world);
-        networkClient.SendPacket(json{"INFO", player}.dump());
+        networkClient.SendPacket(json{PLAYER_INFO, player}.dump());
 
         camera_manager.Update(player.position);
         UpdateOtherPlayers();
@@ -93,7 +94,10 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         if (!isReady && ready) {
             isReady = true;
             std::cout << "Player " << player.username << "is ready." << std::endl;
-            networkClient.SendPacket(json{"READY", player.username, true}.dump());
+            networkClient.SendPacket(json{"READY", {
+                {"username", player.username},
+                {"ready", true}
+            }}.dump());
         }
         if (isReady && !ready) {
             isReady = false;
@@ -109,6 +113,6 @@ void Lobby::Loop(NetworkClient& networkClient, CameraManager& camera_manager) {
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
-    networkClient.SendPacket(json{"DISCONNECT", player.username}.dump());
+    networkClient.SendPacket(json{DISCONNECT, player.username}.dump());
     CloseWindow();        // Close window and OpenGL context
 }

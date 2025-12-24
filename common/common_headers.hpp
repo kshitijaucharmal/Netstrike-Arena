@@ -1,0 +1,19 @@
+//
+// Created by kshitij on 12/24/25.
+//
+
+#ifndef NETSTRIKE_ARENA_COMMON_HEADERS_HPP
+#define NETSTRIKE_ARENA_COMMON_HEADERS_HPP
+
+enum CommandType
+{
+    REGISTER,
+    ACK,
+    ALL_PLAYERS_INFO,
+    PLAYER_INFO,
+    READY,
+    ALL_READY,
+    DISCONNECT,
+};
+
+#endif //NETSTRIKE_ARENA_COMMON_HEADERS_HPP

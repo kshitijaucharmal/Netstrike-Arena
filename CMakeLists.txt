@@ -26,15 +26,18 @@ target_include_directories(imgui PUBLIC
 
 file(GLOB_RECURSE SOURCE_FILES src/*)
 file(GLOB_RECURSE SERVER_FILES server/*)
+file(GLOB_RECURSE COMMON_FILES common/*)
 
 set(ASSET_PATH "${CMAKE_SOURCE_DIR}/assets")
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-add_executable(server ${SERVER_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${COMMON_FILES})
+add_executable(server ${SERVER_FILES} ${COMMON_FILES})
 
+# Server required libraries
 target_link_libraries(server PRIVATE enet raylib)
-
+# Game required libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib imgui enet)
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE ASSET_DIR="${ASSET_PATH}")
 
 # Fix enet include for server

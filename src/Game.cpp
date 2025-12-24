@@ -43,7 +43,17 @@ int Game::Loop(NetworkClient *networkClient, CameraManager &camera_manager) {
 
         player.CheckCollisions(world);
         if (networkClient)
-            networkClient->SendPacket("3|" + player.username + "|[" + std::to_string(player.position.x) + "," + std::to_string(player.position.y) + "]:");
+        {
+            // const std::string send_data = "3|" + player.username
+            //                  + "|[" + std::to_string(player.position.x)
+            //                  + ","
+            //                  + std::to_string(player.position.y) + "]:";
+            json send_data;
+            send_data["name"] = player.username;
+            send_data["px"] = std::to_string(player.position.x);
+            send_data["py"] = std::to_string(player.position.y);
+            networkClient->SendPacket(send_data.dump());
+        }
 
         camera_manager.Update(player.position);
         UpdateOtherPlayers();
